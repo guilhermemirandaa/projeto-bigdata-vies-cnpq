@@ -25,7 +25,7 @@ flowchart LR
 
 | V | No projeto |
 |---|---|
-| **Volume** | 378 MB e 572 mil registros. Guardamos só as colunas úteis, e o banco fica com cerca de 22 MB (o limite é 1 GB). |
+| **Volume** | 378 MB e 572 mil registros. Guardamos só as colunas úteis, e o banco fica com cerca de 60 MB (o limite é 1 GB). |
 | **Variedade** | CSV tabular (dados estruturados). |
 | **Velocidade** | Carga em lote, um arquivo (ano) por vez. O GitHub Actions roda o ETL uma vez por mês. |
 | **Veracidade** | Removemos duplicatas e a linha "Total" de cada arquivo e convertemos "R$" em número. Conferimos que a soma no banco bate com o total oficial de cada ano. |
