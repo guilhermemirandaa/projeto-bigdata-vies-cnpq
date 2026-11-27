@@ -2,7 +2,7 @@
 
 O projeto analisa se as bolsas e os auxílios do CNPq chegam de forma desigual conforme **sexo** e **cor/raça** (ODS 5 e ODS 18).
 
-**Dashboard:** _(cole aqui o link do Streamlit Cloud)_
+**Dashboard:** https://vies-cnpq.streamlit.app/
 
 ## 1. Arquitetura
 
