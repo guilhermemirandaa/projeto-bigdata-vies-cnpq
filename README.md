@@ -6,13 +6,7 @@ O projeto analisa se as bolsas e os auxílios do CNPq chegam de forma desigual c
 
 ## 1. Arquitetura
 
-```mermaid
-flowchart LR
-    A[CSVs do CNPq] --> B[ETL em Python]
-    B --> C[(PostgreSQL na Aiven)]
-    T[Terraform] -->|cria| C
-    C --> D[Dashboard Streamlit]
-```
+![Arquitetura](docs/arquitetura.svg)
 
 | Pasta | Conteúdo |
 |---|---|
@@ -48,12 +42,7 @@ Usamos **PostgreSQL (relacional)** porque os dados são tabelas com colunas fixa
 
 O modelo é **estrela**: uma tabela fato com os números e três dimensões com os textos repetidos, para economizar espaço.
 
-```mermaid
-erDiagram
-    fato_fomento }o--|| dim_local : id_local
-    fato_fomento }o--|| dim_area : id_area
-    fato_fomento }o--|| dim_modalidade : id_modalidade
-```
+![Modelo estrela](docs/modelo_estrela.svg)
 
 A view `vw_fomento` junta as quatro tabelas, e é ela que o dashboard lê.
 

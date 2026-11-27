@@ -1,4 +1,3 @@
-"""Dashboard: Auditoria de Viés Étnico-Gênero no Fomento do CNPq."""
 import os
 
 import pandas as pd
@@ -9,7 +8,7 @@ from sqlalchemy import create_engine
 
 st.set_page_config(page_title="Viés Étnico-Gênero no CNPq", layout="wide")
 
-NEGRAS = ["Preta", "Parda"]  # regra do IBGE: população negra = pretos + pardos
+NEGRAS = ["Preta", "Parda"]  # critério do IBGE
 DIMENSOES = {"Ano": "ano", "Região": "regiao", "Grande área": "grande_area", "Linha de fomento": "linha_fomento"}
 DRILL = {"ano": "regiao", "regiao": "uf", "grande_area": "area", "linha_fomento": "modalidade"}
 METRICAS = ["Total investido (R$)", "Beneficiários", "Valor médio por beneficiário (R$)",
@@ -27,7 +26,6 @@ def carregar():
 
 
 def calcular(df, por, metrica):
-    """Regra de negócio de cada métrica, agrupada pelas colunas em `por`."""
     g = df.groupby(por, observed=True)
     if metrica == "Total investido (R$)":
         s = g["valor_reais"].sum()
@@ -51,7 +49,6 @@ def brl(v):
 
 df = carregar()
 
-# ---------- Filtros cruzados ----------
 st.sidebar.header("Filtros")
 filtros = {"ano": "Ano", "regiao": "Região", "sexo": "Sexo", "cor_raca": "Cor ou raça", "grande_area": "Grande área"}
 for col, rotulo in filtros.items():
@@ -67,7 +64,6 @@ if df.empty:
     st.warning("Nenhum registro para os filtros escolhidos.")
     st.stop()
 
-# ---------- KPIs ----------
 mulher_negra = df[(df["sexo"] == "Feminino") & df["cor_raca"].isin(NEGRAS)]
 homem_branco = df[(df["sexo"] == "Masculino") & (df["cor_raca"] == "Branca")]
 gap = (media_por_benef(mulher_negra) / media_por_benef(homem_branco) - 1) * 100
@@ -81,7 +77,6 @@ k4.metric("Mulheres negras entre beneficiários", f"{part_mn:.1f}%")
 k5.metric("Gap: mulher negra vs. homem branco", "—" if pd.isna(gap) else f"{gap:+.1f}%",
           help="Diferença do valor médio por beneficiário de mulheres negras em relação a homens brancos.")
 
-# ---------- Gráfico principal com seletores ----------
 c1, c2 = st.columns(2)
 metrica = c1.selectbox("Métrica", METRICAS)
 dim_rotulo = c2.selectbox("Eixo / dimensão", list(DIMENSOES))
@@ -92,14 +87,12 @@ fig = px.bar(dados, x=dim, y="valor", color="cor_raca", facet_col="sexo", barmod
              labels={"valor": metrica, dim: dim_rotulo, "cor_raca": "Cor ou raça", "sexo": "Sexo"})
 st.plotly_chart(fig, width="stretch")
 
-# ---------- Matriz interseccional Sexo x Raça ----------
 st.subheader(f"Matriz interseccional: {metrica}")
 matriz = calcular(df, ["sexo", "cor_raca"], metrica).pivot(index="sexo", columns="cor_raca", values="valor")
 st.plotly_chart(px.imshow(matriz, text_auto=",.0f", aspect="auto", color_continuous_scale="Blues",
                           labels={"color": metrica, "x": "Cor ou raça", "y": "Sexo"}),
                 width="stretch")
 
-# ---------- Drill-down ----------
 filho = DRILL[dim]
 st.subheader(f"Detalhar um(a) {dim_rotulo.lower()}")
 valor_escolhido = st.selectbox(dim_rotulo, sorted(df[dim].unique()))

@@ -1,4 +1,3 @@
-"""ETL do Painel de Fomento do CNPq: extrai os CSVs anuais, limpa, anonimiza e carrega no PostgreSQL (modelo estrela)."""
 import glob
 import os
 
@@ -8,9 +7,7 @@ from sqlalchemy import create_engine, text
 
 PASTA_DADOS = os.path.join(os.path.dirname(__file__), "..", "dados_brutos")
 
-# Colunas que entram no banco, já com nome padronizado (snake_case).
-# LGPD: Naturalidade, Nacionalidade, Instituição, Cidade e Município ficam de fora.
-# Combinadas com raça e sexo, elas poderiam identificar um pesquisador.
+# LGPD: naturalidade, nacionalidade, instituição e cidade não são carregadas
 COLUNAS = {
     "Ano de Exercício": "ano",
     "Região": "regiao",
@@ -27,7 +24,6 @@ COLUNAS = {
 
 
 def texto_para_numero(serie):
-    """'R$ 1.600,00' -> 1600.0 ; '-R$ 472,93' (estorno) -> -472.93 ; '0,5' -> 0.5"""
     return pd.to_numeric(
         serie.str.replace("R$", "", regex=False)
         .str.replace(" ", "", regex=False)
@@ -38,36 +34,27 @@ def texto_para_numero(serie):
 
 
 def tratar_arquivo(caminho):
-    """Lê UM arquivo anual por vez (processamento em lotes), para não carregar ~380 MB de uma vez na memória."""
     df = pd.read_csv(caminho, sep="\t", encoding="utf-16", dtype=str)
 
-    # Duplicatas: comparadas na linha inteira, ANTES de descartar colunas.
-    # Depois disso, duas bolsas diferentes poderiam parecer iguais.
     df = df.drop_duplicates()
-
-    # O arquivo exportado termina com uma linha "Total". Se ela ficasse, o total do ano seria contado duas vezes.
+    # o arquivo termina com uma linha de total
     df = df[df["Ano de Exercício"] != "Total"]
 
     df = df[list(COLUNAS)].rename(columns=COLUNAS)
 
-    # Conversão de tipos
     df["ano"] = df["ano"].astype(int)
     df["valor_reais"] = texto_para_numero(df["valor_reais"])
     df["beneficiarios"] = texto_para_numero(df["beneficiarios"])
 
-    # Nulos: sem valor não há o que analisar; texto vazio vira "Não informado".
     df = df.dropna(subset=["valor_reais"])
     df["beneficiarios"] = df["beneficiarios"].fillna(0)
     textos = df.columns.drop(["ano", "valor_reais", "beneficiarios"])
     df[textos] = df[textos].fillna("Não informado")
-
-    # Padroniza a categoria de quem não declarou raça (ela é mantida porque também é um dado: taxa de não declaração).
     df["cor_raca"] = df["cor_raca"].replace("Não desejo declarar", "Não declarada")
     return df
 
 
 def criar_dimensao(fato, colunas, nome_id):
-    """Separa colunas de texto repetitivas numa tabela de dimensão e deixa só o id na tabela fato."""
     dim = fato[colunas].drop_duplicates().sort_values(colunas).reset_index(drop=True)
     dim.insert(0, nome_id, dim.index + 1)
     fato = fato.merge(dim, on=colunas).drop(columns=colunas)
@@ -76,7 +63,7 @@ def criar_dimensao(fato, colunas, nome_id):
 
 def main():
     load_dotenv()
-    url = os.environ["DATABASE_URL"].replace("postgres://", "postgresql://", 1)  # Aiven usa "postgres://"
+    url = os.environ["DATABASE_URL"].replace("postgres://", "postgresql://", 1)
 
     arquivos = sorted(glob.glob(os.path.join(PASTA_DADOS, "Tab_extrator_dados_Painel_Fomento*.csv")))
     if not arquivos:
@@ -89,7 +76,6 @@ def main():
         lotes.append(lote)
     fato = pd.concat(lotes, ignore_index=True)
 
-    # Modelo estrela: 1 tabela fato + 3 dimensões
     fato, dim_local = criar_dimensao(fato, ["regiao", "uf"], "id_local")
     fato, dim_area = criar_dimensao(fato, ["grande_area", "area"], "id_area")
     fato, dim_modalidade = criar_dimensao(fato, ["linha_fomento", "modalidade"], "id_modalidade")
@@ -102,7 +88,6 @@ def main():
             tabela.to_sql(nome, con, if_exists="replace", index=False, chunksize=10_000)
             print(f"Tabela {nome}: {len(tabela):,} linhas carregadas")
 
-        # A view junta a estrela numa tabela só, que o dashboard lê.
         con.execute(text("""
             CREATE VIEW vw_fomento AS
             SELECT f.ano, l.regiao, l.uf, a.grande_area, a.area, m.linha_fomento, m.modalidade,

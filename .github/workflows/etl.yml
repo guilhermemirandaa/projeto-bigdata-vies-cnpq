@@ -1,5 +1,3 @@
-# Roda o ETL em lote: manualmente (botão "Run workflow") ou todo dia 1º do mês.
-# A senha do banco vem do GitHub Secret DATABASE_URL, nunca do código.
 name: ETL CNPq
 
 on:

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260" font-family="Helvetica, Arial, sans-serif" font-size="15">
+  <rect width="900" height="260" fill="#ffffff"/>
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#444"/>
+    </marker>
+  </defs>
+  <g stroke="#2f5d8a" stroke-width="2" fill="#e8f0f8">
+    <rect x="20" y="60" width="150" height="60" rx="8"/>
+    <rect x="230" y="60" width="150" height="60" rx="8"/>
+    <rect x="460" y="50" width="170" height="80" rx="8" fill="#d7e7f5"/>
+    <rect x="710" y="60" width="170" height="60" rx="8"/>
+    <rect x="460" y="180" width="170" height="50" rx="8" fill="#f3ead8" stroke="#8a6d2f"/>
+  </g>
+  <g fill="#1d2b3a" text-anchor="middle">
+    <text x="95" y="87">CSVs do CNPq</text>
+    <text x="95" y="107" font-size="12" fill="#555">dados_brutos/</text>
+    <text x="305" y="87">ETL em Python</text>
+    <text x="305" y="107" font-size="12" fill="#555">etl/ingestao.py</text>
+    <text x="545" y="85">PostgreSQL</text>
+    <text x="545" y="105" font-size="12" fill="#555">Aiven Free Tier (1 GB)</text>
+    <text x="795" y="87">Dashboard</text>
+    <text x="795" y="107" font-size="12" fill="#555">Streamlit</text>
+    <text x="545" y="211">Terraform</text>
+  </g>
+  <g stroke="#444" stroke-width="2" marker-end="url(#seta)">
+    <line x1="170" y1="90" x2="228" y2="90"/>
+    <line x1="380" y1="90" x2="458" y2="90"/>
+    <line x1="630" y1="90" x2="708" y2="90"/>
+    <line x1="545" y1="180" x2="545" y2="132"/>
+  </g>
+  <g font-size="12" fill="#555" text-anchor="middle">
+    <text x="419" y="80">carga</text>
+    <text x="669" y="80">consulta</text>
+    <text x="580" y="160">cria</text>
+  </g>
+</svg>
