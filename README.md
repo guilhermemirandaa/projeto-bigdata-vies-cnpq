@@ -137,7 +137,7 @@ Regras de limpeza do ETL: remoção da linha "Total", remoção de duplicatas (c
 
 ```bash
 # 1. Clonar e instalar
-git clone https://github.com/guilherme12121/projeto-bigdata-vies-cnpq.git
+git clone https://github.com/guilhermemirandaa/projeto-bigdata-vies-cnpq.git
 cd projeto-bigdata-vies-cnpq
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
